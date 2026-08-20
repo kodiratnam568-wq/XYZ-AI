@@ -12,6 +12,10 @@ app = FastAPI(
 )
 
 
+# =========================
+# CORS
+# =========================
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,29 +25,48 @@ app.add_middleware(
 )
 
 
+# =========================
+# HOME
+# =========================
+
 @app.get("/")
 def home():
+
     return {
         "success": True,
         "message": "XYZ AI backend is running!"
     }
 
 
+# =========================
+# HEALTH
+# =========================
+
 @app.get("/health")
 def health():
+
     return {
         "success": True,
         "status": "healthy"
     }
 
 
+# =========================
+# STUDENTS
+# =========================
+
 @app.get("/students")
 def get_students():
+
     return {
         "success": True,
         "data": STUDENTS
     }
 
+
+# =========================
+# FIND STUDENT
+# =========================
 
 def find_student(message):
 
@@ -56,10 +79,15 @@ def find_student(message):
             or student["student_id"].lower() in message_lower
             or student["roll_number"].lower() in message_lower
         ):
+
             return student
 
     return None
 
+
+# =========================
+# CHAT
+# =========================
 
 @app.get("/chat")
 def chat(
@@ -72,43 +100,32 @@ def chat(
 
     lower_message = message.lower()
 
-    # School-data response
-    if student and (
-        "attendance" in lower_message
-        or "attendence" in lower_message
-        or "absent" in lower_message
-        or "present" in lower_message
-    ):
 
-        school_info = (
-            f"Student: {student['name']}, "
-            f"Roll Number: {student['roll_number']}, "
-            f"Attendance: {student['attendance']}%, "
-            f"Class: {student['class_name']}."
+    # =========================
+    # SCHOOL DATABASE
+    # =========================
+
+    attendance_words = [
+        "attendance",
+        "attendence",
+        "absent",
+        "present"
+    ]
+
+
+    is_attendance_question = any(
+        word in lower_message
+        for word in attendance_words
+    )
+
+
+    if student and is_attendance_question:
+
+        reply = (
+            f"{student['name']} ({student['roll_number']}) "
+            f"has {student['attendance']}% attendance "
+            f"in class {student['class_name']}."
         )
-
-        try:
-
-            reply = get_ai_response(
-                f"""
-Give the following school information to the user
-in the selected language.
-
-Do not change or invent any information.
-Keep it simple and clear.
-
-School information:
-{school_info}
-""",
-                role,
-                language
-            )
-
-        except Exception as error:
-
-            print("AI ERROR:", error)
-
-            reply = school_info
 
         return {
             "success": True,
@@ -117,13 +134,16 @@ School information:
         }
 
 
-    # AI response
+    # =========================
+    # AI RESPONSE
+    # =========================
+
     try:
 
         reply = get_ai_response(
-            message,
-            role,
-            language
+            message=message,
+            role=role,
+            language=language
         )
 
         return {
@@ -131,6 +151,7 @@ School information:
             "reply": reply,
             "source": "XYZ AI"
         }
+
 
     except Exception as error:
 
