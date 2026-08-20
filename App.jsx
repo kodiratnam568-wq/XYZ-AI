@@ -18,20 +18,25 @@ function App() {
   const sendMessage = async (text = message) => {
     if (!text.trim() || loading) return;
 
-    const userMessage = text.trim();
+    const userText = text.trim();
 
     setMessages((prev) => [
       ...prev,
-      { sender: "user", text: userMessage },
+      {
+        sender: "user",
+        text: userText,
+      },
     ]);
 
     setMessage("");
     setLoading(true);
 
     try {
+      // IMPORTANT:
+      // Send BOTH selected role and selected language to backend
       const url =
         `${API_URL}/chat` +
-        `?message=${encodeURIComponent(userMessage)}` +
+        `?message=${encodeURIComponent(userText)}` +
         `&role=${encodeURIComponent(role)}` +
         `&language=${encodeURIComponent(language)}`;
 
@@ -44,11 +49,11 @@ function App() {
           sender: "ai",
           text:
             data.reply ||
-            "Sorry, I couldn't generate a response right now.",
+            "Sorry, I'm having trouble generating a response right now.",
         },
       ]);
     } catch (error) {
-      console.error("Chat error:", error);
+      console.error("Error:", error);
 
       setMessages((prev) => [
         ...prev,
@@ -71,21 +76,25 @@ function App() {
 
   return (
     <div className="app">
+      {/* HEADER */}
       <header className="header">
         <div>
           <h1>XYZ AI</h1>
           <p>Human-Like AI School Assistant</p>
         </div>
 
-        <span className="online">
-          <span className="dot"></span>
+        <div className="status">
+          <span className="status-dot"></span>
           Online
-        </span>
+        </div>
       </header>
 
-      <main className="container">
-        <section className="hero">
-          <div className="ai-icon">✦</div>
+      {/* MAIN */}
+      <main className="main-container">
+
+        {/* AI INTRO */}
+        <section className="intro">
+          <div className="ai-badge">✦</div>
 
           <h2>Your AI School Assistant</h2>
 
@@ -94,7 +103,9 @@ function App() {
             school services and more.
           </p>
 
-          <div className="quick-buttons">
+          {/* QUICK BUTTONS */}
+          <div className="quick-actions">
+
             <button
               onClick={() =>
                 sendMessage("I want to know about attendance")
@@ -105,7 +116,7 @@ function App() {
 
             <button
               onClick={() =>
-                sendMessage("Tell me about my subjects")
+                sendMessage("Tell me about subjects")
               }
             >
               Subjects
@@ -118,95 +129,124 @@ function App() {
             >
               Timetable
             </button>
+
           </div>
         </section>
 
-        <section className="chat-box">
-          <div className="chat-messages">
+        {/* CHAT */}
+        <section className="chat-container">
+
+          <div className="messages">
+
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`message ${
-                  msg.sender === "user" ? "user-message" : "ai-message"
-                }`}
+                className={
+                  msg.sender === "user"
+                    ? "message user"
+                    : "message ai"
+                }
               >
+
                 {msg.sender === "ai" && (
-                  <div className="small-ai">AI</div>
+                  <div className="ai-label">AI</div>
                 )}
 
-                <div className="message-text">{msg.text}</div>
+                <div className="message-content">
+                  {msg.text}
+                </div>
+
               </div>
             ))}
 
             {loading && (
-              <div className="message ai-message">
-                <div className="small-ai">AI</div>
-                <div className="message-text">Thinking...</div>
+              <div className="message ai">
+
+                <div className="ai-label">AI</div>
+
+                <div className="message-content">
+                  Thinking...
+                </div>
+
               </div>
             )}
+
           </div>
 
-          <div className="controls">
-            <div className="control-group">
+          {/* ROLE */}
+          <div className="selection-row">
+
+            <div className="selection">
+
               <label>Your role</label>
 
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
               >
-                <option>Student</option>
-                <option>Parent</option>
-                <option>Teacher</option>
-                <option>Principal</option>
+                <option value="Student">Student</option>
+                <option value="Parent">Parent</option>
+                <option value="Teacher">Teacher</option>
+                <option value="Principal">Principal</option>
               </select>
+
             </div>
 
-            <div className="control-group">
+            {/* LANGUAGE */}
+            <div className="selection">
+
               <label>Language</label>
 
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
               >
-                <option>English</option>
-                <option>Hindi</option>
-                <option>Telugu</option>
-                <option>Tamil</option>
-                <option>Marathi</option>
-                <option>Bengali</option>
-                <option>Gujarati</option>
-                <option>Punjabi</option>
-                <option>Kannada</option>
-                <option>Malayalam</option>
-                <option>Urdu</option>
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Telugu">Telugu</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Marathi">Marathi</option>
+                <option value="Bengali">Bengali</option>
+                <option value="Gujarati">Gujarati</option>
+                <option value="Punjabi">Punjabi</option>
+                <option value="Kannada">Kannada</option>
+                <option value="Malayalam">Malayalam</option>
+                <option value="Urdu">Urdu</option>
               </select>
+
             </div>
+
           </div>
 
-          <div className="input-area">
-            <textarea
+          {/* INPUT */}
+          <div className="input-container">
+
+            <input
+              type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Type your question..."
-              rows="2"
             />
 
             <button
-              className="send-button"
               onClick={() => sendMessage()}
               disabled={loading || !message.trim()}
             >
               Send
             </button>
+
           </div>
 
-          <p className="enter-text">
+          <div className="enter-hint">
             Press Enter to send
-          </p>
+          </div>
+
         </section>
 
+        {/* HUMAN HELP */}
         <section className="human-help">
+
           <h3>Need human help?</h3>
 
           <p>
@@ -214,8 +254,13 @@ function App() {
             assistance from school staff.
           </p>
 
-          <div className="help-buttons">
-            <button onClick={() => sendMessage("I want to talk to my teacher")}>
+          <div className="help-actions">
+
+            <button
+              onClick={() =>
+                sendMessage("I want to talk to my teacher")
+              }
+            >
               Talk to Teacher
             </button>
 
@@ -226,13 +271,18 @@ function App() {
             >
               Contact Management
             </button>
+
           </div>
+
         </section>
+
       </main>
 
+      {/* FOOTER */}
       <footer>
         XYZ AI · Human-Like AI School Assistant
       </footer>
+
     </div>
   );
 }
