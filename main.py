@@ -80,17 +80,42 @@ def chat(
         or "present" in lower_message
     ):
 
-        reply = (
-            f"{student['name']} ({student['roll_number']}) "
-            f"has {student['attendance']}% attendance "
-            f"in class {student['class_name']}."
+        school_info = (
+            f"Student: {student['name']}, "
+            f"Roll Number: {student['roll_number']}, "
+            f"Attendance: {student['attendance']}%, "
+            f"Class: {student['class_name']}."
         )
+
+        try:
+
+            reply = get_ai_response(
+                f"""
+Give the following school information to the user
+in the selected language.
+
+Do not change or invent any information.
+Keep it simple and clear.
+
+School information:
+{school_info}
+""",
+                role,
+                language
+            )
+
+        except Exception as error:
+
+            print("AI ERROR:", error)
+
+            reply = school_info
 
         return {
             "success": True,
             "reply": reply,
             "source": "school_database"
         }
+
 
     # AI response
     try:
