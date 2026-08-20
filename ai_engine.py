@@ -2,7 +2,23 @@ from groq import Groq
 import os
 
 
+LANGUAGE_NAMES = {
+    "English": "English",
+    "Hindi": "Hindi",
+    "Telugu": "Telugu",
+    "Tamil": "Tamil",
+    "Marathi": "Marathi",
+    "Bengali": "Bengali",
+    "Gujarati": "Gujarati",
+    "Punjabi": "Punjabi",
+    "Kannada": "Kannada",
+    "Malayalam": "Malayalam",
+    "Urdu": "Urdu"
+}
+
+
 def get_ai_response(message, role="Student", language="English"):
+
     api_key = os.getenv("GROQ_API_KEY")
 
     if not api_key:
@@ -10,10 +26,12 @@ def get_ai_response(message, role="Student", language="English"):
 
     client = Groq(api_key=api_key)
 
-    prompt = f"""
-You are XYZ AI, a friendly and helpful AI school assistant.
+    selected_language = LANGUAGE_NAMES.get(language, "English")
 
-Your job is to help students, parents, teachers, and principals with:
+    system_prompt = f"""
+You are XYZ AI, a friendly AI school assistant.
+
+You help students, parents, teachers and principals with:
 - Attendance
 - Subjects
 - Academics
@@ -22,55 +40,79 @@ Your job is to help students, parents, teachers, and principals with:
 - Teacher communication
 - General school questions
 
-User role: {role}
-Selected language: {language}
+USER ROLE:
+{role}
 
-IMPORTANT LANGUAGE RULE:
-The user's selected language is "{language}".
+OUTPUT LANGUAGE:
+{selected_language}
 
-You MUST reply completely in {language}.
+VERY IMPORTANT:
+The user may type their question in ANY language.
 
-If the selected language is:
-- English → reply in English
-- Hindi → reply in Hindi
-- Telugu → reply in Telugu
-- Tamil → reply in Tamil
-- Marathi → reply in Marathi
-- Bengali → reply in Bengali
-- Gujarati → reply in Gujarati
-- Punjabi → reply in Punjabi
-- Kannada → reply in Kannada
-- Malayalam → reply in Malayalam
-- Urdu → reply in Urdu
+You MUST answer ONLY in the selected OUTPUT LANGUAGE: {selected_language}.
 
-Never reply in English when another language is selected.
-Do not explain the language choice.
-Do not mix languages unless necessary.
-Keep responses simple, natural, friendly, and useful.
+The selected language has higher priority than the language used in the user's message.
 
-User message:
+Examples:
+
+If the user says:
+"I want to know about attendance"
+and selected language is Telugu,
+answer completely in Telugu.
+
+If the user says:
+"naku attendance kavali"
+and selected language is English,
+answer completely in English.
+
+If the user says:
+"Tell me about subjects"
+and selected language is Hindi,
+answer completely in Hindi.
+
+If the user says:
+"hello"
+and selected language is Telugu,
+greet the user in Telugu.
+
+Do NOT mix languages.
+
+Do NOT explain that you are translating.
+
+Do NOT mention the selected language.
+
+Keep answers simple, natural, friendly and useful.
+
+If the question is a normal school question, answer it directly.
+
+If exact school data is unavailable, clearly say that the user should check the school portal or contact school staff.
+
+USER MESSAGE:
 {message}
 """
 
     try:
+
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {
                     "role": "system",
-                    "content": prompt
+                    "content": system_prompt
                 },
                 {
                     "role": "user",
                     "content": message
                 }
             ],
-            temperature=0.4,
+            temperature=0.2,
             max_tokens=500
         )
 
-        return response.choices[0].message.content
+        return response.choices[0].message.content.strip()
 
-    except Exception as e:
-        print("AI Error:", e)
+    except Exception as error:
+
+        print("AI ERROR:", error)
+
         return "Sorry, I'm having trouble generating a response right now."
