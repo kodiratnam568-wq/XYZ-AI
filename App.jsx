@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
-const API = "http://127.0.0.1:8000";
+const API = "https://xyz-ai-wd3c.onrender.com";
 
 function App() {
-
   const [message, setMessage] = useState("");
 
   const [messages, setMessages] = useState([
@@ -15,139 +14,98 @@ function App() {
   ]);
 
   const [loading, setLoading] = useState(false);
-
   const [role, setRole] = useState("Student");
   const [language, setLanguage] = useState("English");
 
   const chatEnd = useRef(null);
 
-
   useEffect(() => {
-
     chatEnd.current?.scrollIntoView({
       behavior: "smooth"
     });
-
   }, [messages, loading]);
 
-
   async function sendMessage(customMessage = null) {
-
     const text = (customMessage ?? message).trim();
 
     if (!text || loading) return;
 
-
-    setMessages(prev => [
+    setMessages((prev) => [
       ...prev,
       {
         type: "user",
-        text: text
+        text
       }
     ]);
 
     setMessage("");
     setLoading(true);
 
-
     try {
-
       const url =
         `${API}/chat?message=${encodeURIComponent(text)}` +
         `&role=${encodeURIComponent(role)}` +
         `&language=${encodeURIComponent(language)}`;
 
-
       const response = await fetch(url);
-
 
       if (!response.ok) {
         throw new Error("Backend unavailable");
       }
 
-
       const data = await response.json();
 
-
-      setMessages(prev => [
-        ...prev,
-        {
-          type: "ai",
-          text: data.reply
-        }
-      ]);
-
-    }
-
-    catch (error) {
-
-      console.error(error);
-
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         {
           type: "ai",
           text:
-            "I couldn't connect to XYZ AI. Please make sure the backend is running."
+            data.reply ||
+            "Sorry, I couldn't generate a response right now."
         }
       ]);
+    } catch (error) {
+      console.error("XYZ AI error:", error);
 
-    }
-
-    finally {
-
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "ai",
+          text:
+            "I'm having trouble connecting to XYZ AI right now. Please try again in a moment."
+        }
+      ]);
+    } finally {
       setLoading(false);
-
     }
   }
-
 
   function handleKeyDown(e) {
-
     if (e.key === "Enter" && !e.shiftKey) {
-
       e.preventDefault();
-
       sendMessage();
-
     }
-
   }
 
-
   return (
-
     <div className="app">
-
       <header>
-
         <div className="brand">
-
           <div>
-
             <h1>XYZ AI</h1>
-
             <p>Human-Like AI School Assistant</p>
-
           </div>
 
           <div className="online">
             <span></span>
             Online
           </div>
-
         </div>
-
       </header>
 
-
       <main>
-
         <section className="intro">
-
-          <div className="ai-icon">
-            AI
-          </div>
+          <div className="ai-icon">AI</div>
 
           <h2>Your AI School Assistant</h2>
 
@@ -155,12 +113,9 @@ function App() {
             Ask questions about attendance, academics,
             schedules, school services and more.
           </p>
-
         </section>
 
-
         <div className="quick-actions">
-
           <button
             onClick={() =>
               sendMessage("I want to know about attendance")
@@ -184,100 +139,66 @@ function App() {
           >
             Timetable
           </button>
-
         </div>
 
-
         <section className="chat">
-
           {messages.map((item, index) => (
-
             <div
               className={`message ${item.type}`}
               key={index}
             >
-
               {item.type === "ai" && (
                 <div className="avatar">AI</div>
               )}
 
-              <div className="bubble">
-                {item.text}
-              </div>
-
+              <div className="bubble">{item.text}</div>
             </div>
-
           ))}
 
-
           {loading && (
-
             <div className="message ai">
-
-              <div className="avatar">
-                AI
-              </div>
+              <div className="avatar">AI</div>
 
               <div className="bubble typing">
-
                 <span></span>
                 <span></span>
                 <span></span>
-
               </div>
-
             </div>
-
           )}
 
           <div ref={chatEnd}></div>
-
         </section>
 
-
         <section className="controls">
-
           <div>
-
             <label>Your role</label>
 
             <div className="roles">
-
               {[
                 "Student",
                 "Parent",
                 "Teacher",
                 "Principal"
-              ].map(item => (
-
+              ].map((item) => (
                 <button
                   key={item}
-                  className={
-                    role === item ? "selected" : ""
-                  }
+                  className={role === item ? "selected" : ""}
                   onClick={() => setRole(item)}
                 >
                   {item}
                 </button>
-
               ))}
-
             </div>
-
           </div>
 
-
           <div className="language">
-
             <label>Language</label>
 
             <select
               value={language}
-              onChange={e =>
-                setLanguage(e.target.value)
-              }
+              onChange={(e) => setLanguage(e.target.value)}
             >
-
               {[
                 "English",
                 "Hindi",
@@ -290,28 +211,17 @@ function App() {
                 "Kannada",
                 "Malayalam",
                 "Urdu"
-              ].map(item => (
-
-                <option key={item}>
-                  {item}
-                </option>
-
+              ].map((item) => (
+                <option key={item}>{item}</option>
               ))}
-
             </select>
-
           </div>
-
         </section>
 
-
         <section className="composer">
-
           <textarea
             value={message}
-            onChange={e =>
-              setMessage(e.target.value)
-            }
+            onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type your message..."
           />
@@ -322,16 +232,13 @@ function App() {
           >
             {loading ? "..." : "Send"}
           </button>
-
         </section>
 
         <div className="hint">
           Press Enter to send
         </div>
 
-
         <section className="human-help">
-
           <h3>Need human help?</h3>
 
           <p>
@@ -340,7 +247,6 @@ function App() {
           </p>
 
           <div>
-
             <button
               onClick={() =>
                 sendMessage("I want to talk to my teacher")
@@ -356,20 +262,14 @@ function App() {
             >
               Contact Management
             </button>
-
           </div>
-
         </section>
-
       </main>
-
 
       <footer>
         XYZ AI · Human-Like AI School Assistant
       </footer>
-
     </div>
-
   );
 }
 
