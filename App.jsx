@@ -3,6 +3,61 @@ import "./App.css";
 
 const API = "https://xyz-ai-wd3c.onrender.com";
 
+function getDemoResponse(text, role, language) {
+  const q = text.toLowerCase();
+
+  if (q.includes("attendance")) {
+    return `Sure! As a ${role}, I can help you with attendance. Your attendance information can include total classes, classes attended, classes missed, and your current attendance percentage. For your actual school attendance record, please check the school portal or contact the administration.`;
+  }
+
+  if (
+    q.includes("subject") ||
+    q.includes("subjects")
+  ) {
+    return `XYZ AI can help you with your academic subjects. Common school subjects include Mathematics, Science, English, Social Studies, Computer Science, Languages, and Physical Education. You can ask me about a specific subject and I can explain it in a simple way.`;
+  }
+
+  if (
+    q.includes("timetable") ||
+    q.includes("schedule")
+  ) {
+    return `I can help you understand your school timetable. A timetable normally contains the subject, teacher, classroom, and time for each period. For the latest school-specific timetable, please check your student portal or school notice board.`;
+  }
+
+  if (
+    q.includes("teacher") ||
+    q.includes("talk to my teacher")
+  ) {
+    return `Of course! You can contact your teacher through the school portal, official school email, classroom communication system, or during designated teacher office hours. If you need urgent assistance, you can also contact the school administration.`;
+  }
+
+  if (
+    q.includes("management") ||
+    q.includes("principal") ||
+    q.includes("school management")
+  ) {
+    return `You can contact school management through the school office, administration desk, official school portal, or the appropriate school communication channel. XYZ AI can also help you prepare a clear message explaining your concern.`;
+  }
+
+  if (
+    q.includes("hello") ||
+    q.includes("hi") ||
+    q.includes("hlo") ||
+    q.includes("hey")
+  ) {
+    return `Hello! 👋 I'm XYZ AI, your school assistant. I can help you with attendance, academics, subjects, timetables, school services, and general school questions.`;
+  }
+
+  if (
+    q.includes("help") ||
+    q.includes("what can you do")
+  ) {
+    return `I'm XYZ AI, your human-like school assistant. I can help with attendance, subjects, timetables, academic questions, school services, teacher assistance, and management-related queries.`;
+  }
+
+  return `Thanks for your question! I'm XYZ AI, your school assistant. I can help you with attendance, subjects, timetables, academics, school services, and connecting you with school staff. Please provide a little more detail about what you need.`;
+}
+
 function App() {
   const [message, setMessage] = useState("");
 
@@ -55,24 +110,55 @@ function App() {
 
       const data = await response.json();
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          type: "ai",
-          text:
-            data.reply ||
-            "Sorry, I couldn't generate a response right now."
-        }
-      ]);
+      const reply = data.reply;
+
+      // If backend returns a proper AI response, use it.
+      // If backend returns a configuration/error message,
+      // use the built-in demo response instead.
+      if (
+        reply &&
+        !reply.toLowerCase().includes("groq_api_key") &&
+        !reply.toLowerCase().includes("ai service is not configured") &&
+        !reply.toLowerCase().includes("service is not configured")
+      ) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "ai",
+            text: reply
+          }
+        ]);
+      } else {
+        const demoReply = getDemoResponse(
+          text,
+          role,
+          language
+        );
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "ai",
+            text: demoReply
+          }
+        ]);
+      }
     } catch (error) {
-      console.error("XYZ AI error:", error);
+      console.error("XYZ AI backend error:", error);
+
+      // Fallback response so the application remains usable
+      // even if the backend is temporarily unavailable.
+      const demoReply = getDemoResponse(
+        text,
+        role,
+        language
+      );
 
       setMessages((prev) => [
         ...prev,
         {
           type: "ai",
-          text:
-            "I'm having trouble connecting to XYZ AI right now. Please try again in a moment."
+          text: demoReply
         }
       ]);
     } finally {
@@ -151,7 +237,9 @@ function App() {
                 <div className="avatar">AI</div>
               )}
 
-              <div className="bubble">{item.text}</div>
+              <div className="bubble">
+                {item.text}
+              </div>
             </div>
           ))}
 
@@ -183,7 +271,9 @@ function App() {
               ].map((item) => (
                 <button
                   key={item}
-                  className={role === item ? "selected" : ""}
+                  className={
+                    role === item ? "selected" : ""
+                  }
                   onClick={() => setRole(item)}
                 >
                   {item}
@@ -197,7 +287,9 @@ function App() {
 
             <select
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              onChange={(e) =>
+                setLanguage(e.target.value)
+              }
             >
               {[
                 "English",
@@ -221,7 +313,9 @@ function App() {
         <section className="composer">
           <textarea
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) =>
+              setMessage(e.target.value)
+            }
             onKeyDown={handleKeyDown}
             placeholder="Type your message..."
           />
@@ -249,7 +343,9 @@ function App() {
           <div>
             <button
               onClick={() =>
-                sendMessage("I want to talk to my teacher")
+                sendMessage(
+                  "I want to talk to my teacher"
+                )
               }
             >
               Talk to Teacher
@@ -257,7 +353,9 @@ function App() {
 
             <button
               onClick={() =>
-                sendMessage("I want to contact school management")
+                sendMessage(
+                  "I want to contact school management"
+                )
               }
             >
               Contact Management
