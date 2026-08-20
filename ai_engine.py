@@ -1,59 +1,73 @@
-import os
-from dotenv import load_dotenv
 from groq import Groq
-
-load_dotenv()
-
-api_key = os.getenv("GROQ_API_KEY")
-
-client = Groq(api_key=api_key) if api_key else None
-
-MODEL = "openai/gpt-oss-20b"
+import os
 
 
-def get_ai_response(message, role="Student", language="English"):
+def generate_response(message, role="Student", language="English"):
+    api_key = os.getenv("GROQ_API_KEY")
 
-    if not client:
+    if not api_key:
         return "AI service is not configured. Please check the GROQ_API_KEY."
 
-    system_prompt = f"""
-You are XYZ AI, a human-like school assistant.
+    client = Groq(api_key=api_key)
+
+    prompt = f"""
+You are XYZ AI, a friendly and helpful AI school assistant.
+
+Your job is to help students, parents, teachers, and principals with:
+- Attendance
+- Subjects
+- Academics
+- Timetables
+- School services
+- Teacher communication
+- General school questions
 
 User role: {role}
-Preferred language: {language}
+Selected language: {language}
 
-Help with:
-- attendance
-- academics
-- subjects
-- timetable
-- school services
-- teachers
-- school administration
-- general school questions
+IMPORTANT LANGUAGE RULE:
+You MUST answer completely in the selected language.
 
-Be friendly, clear and concise.
+Language mapping:
+English → English
+Hindi → Hindi
+Telugu → Telugu
+Tamil → Tamil
+Marathi → Marathi
+Bengali → Bengali
+Gujarati → Gujarati
+Punjabi → Punjabi
+Kannada → Kannada
+Malayalam → Malayalam
+Urdu → Urdu
 
-Do not invent private student information.
-If specific school data is unavailable, say so honestly.
+Do not explain the language choice.
+Do not mix languages unless the user specifically asks for it.
+Keep the answer simple, natural, friendly, and useful for a school environment.
 
-Answer the user's actual question directly.
+User message:
+{message}
 """
 
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {
-                "role": "system",
-                "content": system_prompt
-            },
-            {
-                "role": "user",
-                "content": message
-            }
-        ],
-        temperature=0.3,
-        max_tokens=400
-    )
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": prompt
+                },
+                {
+                    "role": "user",
+                    "content": message
+                }
+            ],
+            temperature=0.4,
+            max_tokens=500
+        )
 
-    return response.choices[0].message.content.strip()
+        return response.choices[0].message.content
+
+    except Exception as e:
+        print("AI Error:", e)
+        return "Sorry, I'm having trouble generating a response right now."
